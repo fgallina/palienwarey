@@ -191,7 +191,7 @@ TODO
 ====
 
 1. Cleanup and push tests.
-2. Support for more machines.
+2. Create a simple GUI (more as an example than anything else) using Tkinter.
 3. Add support for theme files.
 4. Add a configuration files for overriding defaults.
 5. Handle daemon concurrency properly.
