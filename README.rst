@@ -160,6 +160,20 @@ Once you are done with all the lsdetect questions, it will print a
 ``defmachine`` you can add in the ``palienware.machines`` module and use as a
 starting point for adding support to your device.
 
+Supported Machines
+==================
+
++ Alienware 14 2013
++ M11XR3
++ M14XR1
++ M17XR3
++ M18XR2
++ M11XR25
++ M11XR2
++ M11XR1
++ M15XAllPowerful
++ M15XArea51
+
 Acknowledgements
 ================
 
