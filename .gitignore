@@ -1,0 +1,8 @@
+*.db
+*.elc
+*.pyc
+*.pyo
+*~
+.#*
+.dir-locals.el
+__pycache__
