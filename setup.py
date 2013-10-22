@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from distutils.core import setup
+from ez_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup
 
 
 setup(
@@ -9,7 +12,7 @@ setup(
     author='Fabián Ezequiel Gallina',
     author_email='galli.87@gmail.com',
     description=('Cross platform Alienware Lights commandline tool, driver and library.'),
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'lsd = palienwarey.lsd:main',
             'lsdaemon = palienwarey.lsdaemon:main',
@@ -17,9 +20,9 @@ setup(
         ]
     },
     license='GPLv3+',
-    packages='palienwarey',
+    packages=['palienwarey'],
     requires=[
-        'pyusb == 1.0.0a3',
+        'pyusb(==1.0.0a3)',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

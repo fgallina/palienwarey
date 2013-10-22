@@ -6,3 +6,4 @@
 .#*
 .dir-locals.el
 __pycache__
+setuptools-*
