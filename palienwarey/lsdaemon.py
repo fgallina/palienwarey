@@ -20,7 +20,7 @@ from .protocol import send
 __all__ = ['DEFAULT_PORT', 'HEADER_LENGTH', 'SUCCESS', 'ERROR_BAD_HEADER',
            'ERROR_BAD_METHOD', 'ERROR_BAD_ARGUMENTS', 'ERROR_BAD_REQUEST_JSON',
            'protocol', 'LSDaemonServerRequestHandler', 'LSDaemonServer',
-           'lsdaemon']
+           'lsdaemon', 'main']
 
 
 class protocol(object):

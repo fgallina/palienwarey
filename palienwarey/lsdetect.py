@@ -16,7 +16,7 @@ from .protocol import (
     cmd_transmit_execute)
 
 
-__all__ = ['LEDS_TO_SCAN', 'y_or_n', 'lsdetect', 'read_input']
+__all__ = ['LEDS_TO_SCAN', 'y_or_n', 'lsdetect', 'read_input', 'main']
 
 
 try:
