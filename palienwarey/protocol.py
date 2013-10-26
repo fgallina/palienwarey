@@ -387,7 +387,7 @@ CMD_FN_MAP = {
 }
 
 
-def send_for_mode(machine=None, zones=tuple(), mode=None, speed=0):
+def send_for_mode(machine=None, zones=tuple(), mode=None, speed=MAX_SPEED):
     """
     Sends commands to the device for given mode.
 
@@ -417,20 +417,20 @@ def send_for_mode(machine=None, zones=tuple(), mode=None, speed=0):
     # start at 1, otherwise it just ignores the first request.
     idx = 1
 
+    if speed:
+        if (0 > speed or speed > MAX_SPEED):
+            logger.warn('Invalid speed %d, setting to %d (0x%x)',
+                        speed, MAX_SPEED, MAX_SPEED)
+            speed = MAX_SPEED
+        try:
+            cmd_set_mode(device, mode)
+            cmd_set_speed(device, speed)
+        except USBError:
+            return log_error_code(ERROR_DEVICE_TIMEOUT)
+
     for zone_cmds in zones:
         zone_uid = zone_cmds[0]
         cmd_list = zone_cmds[1:]
-
-        if speed:
-            if (0 > speed or speed > MAX_SPEED):
-                logger.warn('Invalid speed %d, setting to %d (0x%x)',
-                            speed, MAX_SPEED, MAX_SPEED)
-                speed = MAX_SPEED
-            try:
-                cmd_set_mode(device, mode)
-                cmd_set_speed(device, speed)
-            except USBError:
-                return log_error_code(ERROR_DEVICE_TIMEOUT)
 
         try:
             zone = machine['zones_by_uid'][zone_uid]
@@ -475,7 +475,7 @@ def send_for_mode(machine=None, zones=tuple(), mode=None, speed=0):
     return SUCCESS
 
 
-def send(machine=None, zones=None, modes=None, speed=0, save=False):
+def send(machine=None, zones=None, modes=None, speed=MAX_SPEED, save=False):
     """
     Sends zone commands to the device for all modes.
 

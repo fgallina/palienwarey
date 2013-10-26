@@ -4,7 +4,7 @@ import sys
 
 from . import lsdclient
 from .constants import (
-    ERROR_DEVICE_NOT_FOUND, ERROR_UNKNOWN_COMMAND, ERROR_BAD_COLOR)
+    MAX_SPEED, ERROR_DEVICE_NOT_FOUND, ERROR_UNKNOWN_COMMAND, ERROR_BAD_COLOR)
 from .defines import get_machine
 from .logconf import logger, set_log_level, set_log_formatter, log_error_code
 from .lsdaemon import DEFAULT_HOST, DEFAULT_PORT, SUCCESS
@@ -73,7 +73,7 @@ def main():
                         help='lsdaemon port (defaults to %s.' % DEFAULT_PORT)
     parser.add_argument('-r', '--repl', default=False, action='store_true',
                         help='Get into the command repl.')
-    parser.add_argument('-t', '--speed', default=0, type=int,
+    parser.add_argument('-t', '--speed', default=MAX_SPEED, type=int,
                         help='Set theme tempo (speed).')
     parser.add_argument('-s', '--save', action='store_true', default=False,
                         help='Save changes permanently.')
