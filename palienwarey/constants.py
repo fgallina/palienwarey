@@ -133,6 +133,12 @@ STRING_CMD_MAP = {
     'p': CMD_SET_PULSE,
     'pulse': CMD_SET_PULSE
 }
+CMD_STRING_MAP = {
+    CMD_SET_COLOR: 'color',
+    CMD_SET_MORPH: 'morph',
+    CMD_SET_PULSE: 'pulse'
+}
+
 
 # Reset strings to reset contants
 STRING_RESET_MAP = {

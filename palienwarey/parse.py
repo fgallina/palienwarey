@@ -4,8 +4,9 @@ import collections
 from argparse import Action
 
 from .logconf import logger
-from .constants import (CMD_SET_COLOR, CMD_SET_MORPH, CMD_SET_PULSE,
-                        ALL_ZONES_UID, STRING_CMD_MAP)
+from .constants import (
+    CMD_SET_COLOR, CMD_SET_MORPH, CMD_SET_PULSE, STRING_CMD_MAP,
+    CMD_STRING_MAP)
 
 
 __all__ = ['ALL_ZONES_UID', 'STRING_CMD_MAP', 'AppendZoneAction',
@@ -79,6 +80,22 @@ def parse_cmd(command):
     return (cmd,) + tuple(args)
 
 
+def _zone_can(zone, cmd):
+    warn_msg = 'Zone "%s" (uid: %s) cannot %s, skipping'
+    can = (cmd == CMD_SET_COLOR or
+           (cmd == CMD_SET_MORPH and zone['can_morph']) or
+           (cmd == CMD_SET_PULSE and zone['can_pulse']))
+    if not can:
+        uid_fmt = '0x%.4x'
+        uid = zone['uid']
+        if not zone['is_group']:
+            uid_str = uid_fmt % uid
+        else:
+            uid_str = ', '.join([uid_fmt % suid for suid in uid])
+        logger.warn(warn_msg, zone['name'], uid_str, CMD_STRING_MAP[cmd])
+    return can
+
+
 def parse_zones_cmd_set(machine, zones_cmd_set):
     """
     Parses all zones commands defined in strings to data structures.
@@ -103,12 +120,8 @@ def parse_zones_cmd_set(machine, zones_cmd_set):
 
         for cmd in cmd_list.split():
             cmd_and_args = parse_cmd(cmd)
-            # Ignore commands not supported by zone.
-            if (cmd == 'morph' and not zone['can_morph']) or \
-               (cmd == 'pulse' and not zone['can_pulse']):
-                logger.warn(
-                    'Zone "%s" (uid: %x) cannot %s, skipping' % (
-                        zone['name'], uid, cmd))
+            cmd_const = cmd_and_args[0]
+            if not _zone_can(zone, cmd_const):
                 continue
             parsed.append((uid, cmd_and_args))
     return parsed

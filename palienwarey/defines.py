@@ -33,6 +33,7 @@ def defmachine(uid, name, zones, mode_version):
       + modes: a list of supported modes as provided by mode_version.
       + device: slot reserved to save the usb device when it's found.
     """
+    # Zone alias for all non-power nor group zones supporting all commands.
     all_zone = defzone(
         [zone['uid'] for zone in zones if not zone['is_power'] and
          not zone['is_group'] and zone['can_morph'] and zone['can_pulse']],
@@ -40,11 +41,24 @@ def defmachine(uid, name, zones, mode_version):
         alias='all')
     zones = tuple(zones) + (all_zone,)
 
+    # Defzones from MODE_VERSION_* values.
     modes = [defzone(*args) for args in mode_version]
 
+    # Generate a lookup for zones by uid, useful in various places.
     zones_by_uid = {}
     for zone in zones:
         zones_by_uid[zone['uid']] = zone
+
+    for zone in zones:
+        if zone['is_group']:
+            # Adjust group zone features so all members share the same
+            # restrictions. For example if a member of a group cannot morph
+            # then the whole group will not be able to morph (even if other
+            # individual member where explicitly set to be able to).
+            zone['can_morph'] = all(
+                zones_by_uid[uid]['can_morph'] for uid in zone['uid'])
+            zone['can_pulse'] = all(
+                zones_by_uid[uid]['can_pulse'] for uid in zone['uid'])
 
     return {
         'uid': uid,
@@ -88,6 +102,11 @@ def defzone(uid, name, alias=None, can_morph=True, can_pulse=True,
          is_group to True.
       + is_power: for the power zone there might be special rules, so this
          flag is just to identify them easily.
+
+    For group zones, can_morph and can_pulse are re-set automatically when
+    defining a new machine. The logic behind it is that when a member of a
+    group cannot do something, for example morph, then the group will be
+    marked with can_morph as False, even if some members of it do support it.
 
     Returns a dict with all the arguments, plus an is_group key that specifies
     if this is a group zone.
