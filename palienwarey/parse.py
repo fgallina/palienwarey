@@ -40,9 +40,15 @@ def parse_color(color, first=True):
 
     Returns a tuple.
     """
+    num_digits = len(color)
+    if num_digits != 6:
+        raise ValueError(
+            'Invalid number of digits (must be 6, %s given)' % num_digits)
+
     r = int(int(color[0:2], 16)/16)
     g = int(int(color[2:4], 16)/16)
     b = int(int(color[4:6], 16)/16)
+
     if first:
         return (r * 16 + g, b * 16)
     else:
@@ -72,8 +78,12 @@ def parse_cmd(command):
     cmd = STRING_CMD_MAP[cmd_str]
 
     if cmd in [CMD_SET_COLOR, CMD_SET_PULSE]:
+        if len(args) > 1:
+            raise ValueError('This command supports up to one color per call')
         args[0] = parse_color(args[0])
     elif cmd == CMD_SET_MORPH:
+        if len(args) > 2:
+            raise ValueError('This command supports up to two colors per call')
         args[0] = parse_color(args[0])
         args[1] = parse_color(args[1], False)
 
