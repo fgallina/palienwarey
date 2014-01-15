@@ -1,7 +1,7 @@
 import machines
 
 
-VERSION = (0, 1, 0, 'rc', 0)
+VERSION = (0, 1, 0, 'a', 0)
 
 
 # Thanks again, Django.
