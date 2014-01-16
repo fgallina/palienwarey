@@ -16,14 +16,14 @@ __all__ = ['lsd', 'main']
 
 
 def lsd(machine, zones=None, modes=None, speed=0, save=False,
-        override_groups=False, daemon=False, repl=False,
+        cascade=False, daemon=False, repl=False,
         log_level='info', verbosity='simple',
         host=DEFAULT_HOST, port=DEFAULT_PORT):
     set_log_level(log_level)
     set_log_formatter(verbosity)
 
     try:
-        zones = parse_prepare_zones_cmd_set(machine, zones, override_groups)
+        zones = parse_prepare_zones_cmd_set(machine, zones, cascade)
     except KeyError as e:
         logger.error(e.message)
         return log_error_code(ERROR_UNKNOWN_COMMAND)
@@ -63,8 +63,8 @@ def main():
     parser.add_argument('-l', '--log-level', default='info',
                         choices=['debug', 'info', 'warn', 'error', 'critical'],
                         help='Set logging level.')
-    parser.add_argument('-o', '--override-groups', action='store_true',
-                        help='Override groups for single specified zones.')
+    parser.add_argument('-c', '--cascade', action='store_true',
+                        help='Override commands in cascade.')
     parser.add_argument('-d', '--daemon', action='store_true',
                         default=False, help='Use the daemon.')
     parser.add_argument('-i', '--host', default=DEFAULT_HOST,

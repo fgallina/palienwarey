@@ -184,7 +184,7 @@ def group_zone_has_cmd(group, group_uid, group_idx, zones_cmd_set):
     return False
 
 
-def expand_group_zones_cmd_set(machine, zones_cmd_set, override_groups=False):
+def expand_group_zones_cmd_set(machine, zones_cmd_set, cascade=False):
     """
     Expand all group zones commands into separated zones.
 
@@ -193,8 +193,8 @@ def expand_group_zones_cmd_set(machine, zones_cmd_set, override_groups=False):
       + zones_cmd_set: a list of tuples where first element is the uid for the
          zone (or tuple of uids if it's a group) and the second element is an
          iterable with all commands defined as proper data structures.
-      + override_groups: when True, single zone commands will override command
-         definitions for groups for which it is member.
+      + cascade: when True, commands for zones get overriden by latter ones
+         instead of being appended in the same loop.
 
     Returns the expanded zones_cmd_set.
     """
@@ -207,26 +207,25 @@ def expand_group_zones_cmd_set(machine, zones_cmd_set, override_groups=False):
             expanded.append(zone_cmd_set)
         else:
             for single_uid in uid:
-                # For groups we do something fancier when the override_groups
-                # is True: we need the group index because a lower index means
-                # less priority when overriding commands.
-                if override_groups and group_zone_has_cmd(
+                # When cascade we need the group index because a lower index
+                # means less priority when overriding commands.
+                if cascade and group_zone_has_cmd(
                         uid, single_uid, zone_idx, zones_cmd_set):
                     continue
                 expanded.append((single_uid, cmd_and_args))
     return expanded
 
 
-def prepare_zones_cmd_set(machine, zones_cmd_set, override_groups=False):
+def prepare_zones_cmd_set(machine, zones_cmd_set, cascade=False):
     """
     Alias for merge_zones_cmd_set(expand_group_zones_cmd_set(*args))
     """
     return merge_zones_cmd_set(
         machine, expand_group_zones_cmd_set(
-            machine, zones_cmd_set, override_groups))
+            machine, zones_cmd_set, cascade))
 
 
-def parse_prepare_zones_cmd_set(machine, zones_cmd_set, override_groups=False):
+def parse_prepare_zones_cmd_set(machine, zones_cmd_set, cascade=False):
     """
     Alias for:
         parse_zones_cmd_set(
@@ -235,4 +234,4 @@ def parse_prepare_zones_cmd_set(machine, zones_cmd_set, override_groups=False):
     return merge_zones_cmd_set(
         machine, expand_group_zones_cmd_set(
             machine, parse_zones_cmd_set(
-                machine, zones_cmd_set), override_groups))
+                machine, zones_cmd_set), cascade))
