@@ -96,8 +96,8 @@ Example 3: Use group commands as default and override with other zones.
 -----------------------------------------------------------------------
 
 This is handy for when you want an specific configuration shared for most
-zones that belong to a group but you need one or more zones in it to be
-different. For this there's the ``--override-groups`` switch.
+zones but you have special rules for others. For this there's the
+``--cascade`` switch.
 
 Consider this example::
 
@@ -108,10 +108,10 @@ With this, what will happen is that all keyboard zones will be set to
 ``00ff00`` color will be added as another configuration for the zone loop, so
 that will render in a color switch for keyboard sides. If what you really
 wanted was to provide a default configuration for the whole keyboard but set
-different configurations for both sides, then the ``--override-groups`` switch
+different configurations for both sides, then the ``--cascade`` switch
 will come to help::
 
-    # lsd --kbd c:ffcc00 --kbd-left c:00ff00 --kbd-right c:00ff00 --override-groups
+    # lsd --kbd c:ffcc00 --kbd-left c:00ff00 --kbd-right c:00ff00 --cascade
 
 Example 4: Set a led configuration for specific power modes.
 ------------------------------------------------------------
