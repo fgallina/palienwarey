@@ -8,7 +8,7 @@ from .constants import (
 from .defines import get_machine
 from .logconf import logger, set_log_level, set_log_formatter, log_error_code
 from .lsdaemon import DEFAULT_HOST, DEFAULT_PORT, SUCCESS
-from .parse import AppendZoneAction, parse_prepare_zones_cmd_set
+from .parse import AppendZoneAction, parse
 from .protocol import send
 
 
@@ -16,14 +16,14 @@ __all__ = ['lsd', 'main']
 
 
 def lsd(machine, zones=None, modes=None, speed=0, save=False,
-        override_groups=False, daemon=False, repl=False,
+        cascade=False, daemon=False, repl=False,
         log_level='info', verbosity='simple',
         host=DEFAULT_HOST, port=DEFAULT_PORT):
     set_log_level(log_level)
     set_log_formatter(verbosity)
 
     try:
-        zones = parse_prepare_zones_cmd_set(machine, zones, override_groups)
+        parsed = parse(machine, zones, cascade)
     except KeyError as e:
         logger.error(e.message)
         return log_error_code(ERROR_UNKNOWN_COMMAND)
@@ -40,13 +40,13 @@ def lsd(machine, zones=None, modes=None, speed=0, save=False,
 
     if not daemon:
         logger.info('Not using daemon, executing commands directly.')
-        return send(machine, zones, modes, speed, save)
+        return send(machine, parsed, modes, speed, save)
     else:
         response = lsdclient.ping(host, port)
         if response['success']:
             logger.info('Using daemon at port: %s' % port)
             response = lsdclient.send(host, port, {
-                'zones': zones,
+                'zones': parsed,
                 'modes': modes,
                 'speed': speed,
                 'save': save
@@ -63,8 +63,8 @@ def main():
     parser.add_argument('-l', '--log-level', default='info',
                         choices=['debug', 'info', 'warn', 'error', 'critical'],
                         help='Set logging level.')
-    parser.add_argument('-o', '--override-groups', action='store_true',
-                        help='Override groups for single specified zones.')
+    parser.add_argument('-c', '--cascade', action='store_true',
+                        help='Override commands in cascade.')
     parser.add_argument('-d', '--daemon', action='store_true',
                         default=False, help='Use the daemon.')
     parser.add_argument('-i', '--host', default=DEFAULT_HOST,
