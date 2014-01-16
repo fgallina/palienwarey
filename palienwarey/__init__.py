@@ -1,4 +1,4 @@
-import machines
+from . import machines
 
 
 VERSION = (0, 1, 0, 'a', 0)
