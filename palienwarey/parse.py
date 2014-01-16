@@ -10,9 +10,8 @@ from .constants import (
 
 
 __all__ = ['ALL_ZONES_UID', 'STRING_CMD_MAP', 'AppendZoneAction',
-           'parse_color', 'parse_zones_cmd_set', 'merge_zones_cmd_set',
-           'group_zone_has_cmd', 'expand_group_zones_cmd_set',
-           'prepare_zones_cmd_set', 'parse_prepare_zones_cmd_set']
+           'parse_color', 'parse_cmd', 'parse_zones',
+           'flatten_group_zones', 'merge_zones', 'parse']
 
 
 class AppendZoneAction(Action):
@@ -106,7 +105,7 @@ def _zone_can(zone, cmd):
     return can
 
 
-def parse_zones_cmd_set(machine, zones_cmd_set):
+def parse_zones(machine, zones_cmd_set):
     """
     Parses all zones commands defined in strings to data structures.
 
@@ -137,7 +136,24 @@ def parse_zones_cmd_set(machine, zones_cmd_set):
     return parsed
 
 
-def merge_zones_cmd_set(machine, zones_cmd_set):
+def flatten_group_zones(machine, zones_cmd_set):
+    """
+    Flattens all group definitions into single zones.
+
+    Important thing to note, this fn is idempotent.
+    """
+    acc = []
+    for uid, zone_cmd in zones_cmd_set:
+        zone = machine['zones_by_uid'].get(uid)
+        if zone["is_group"]:
+            for z in uid:
+                acc.append((z, zone_cmd))
+        else:
+            acc.append((uid, zone_cmd))
+    return acc
+
+
+def merge_zones(machine, zones_cmd_set, cascade=False):
     """
     Merges all same zones commands into single zones.
 
@@ -146,6 +162,8 @@ def merge_zones_cmd_set(machine, zones_cmd_set):
       + zones_cmd_set: a list of tuples where first element is the uid for the
          zone (or tuple of uids if it's a group) and the second element is an
          iterable with all commands defined as proper data structures.
+      + cascade: when True, commands for zones get overriden by latter ones
+         instead of being appended in the same loop.
 
     Returns the merged zones_cmd_set.
     """
@@ -159,34 +177,16 @@ def merge_zones_cmd_set(machine, zones_cmd_set):
             merged.append([uid] + cmd_and_args)
             idx = len(merged) - 1
             uid_idx[uid] = idx
+        elif cascade:
+            merged[idx] = [uid] + cmd_and_args
         else:
             merged[idx] += cmd_and_args
     return merged
 
 
-def group_zone_has_cmd(group, group_uid, group_idx, zones_cmd_set):
+def parse(machine, zones_cmd_set, cascade=False):
     """
-    Returns true if zone with uid has a command defined for it.
-    """
-    for zone_idx, zone_cmd_set in enumerate(zones_cmd_set):
-        zone_uid = zone_cmd_set[0]
-        # The group will only have overrides when a zone (or group zone)
-        # command was defined after it.
-        if group_idx >= zone_idx:
-            continue
-        if not isinstance(zone_uid, collections.Iterable):
-            if group_uid == zone_uid:
-                return True
-        else:
-            for single_uid in zone_uid:
-                if single_uid == group_uid:
-                    return True
-    return False
-
-
-def expand_group_zones_cmd_set(machine, zones_cmd_set, cascade=False):
-    """
-    Expand all group zones commands into separated zones.
+    Parses the list of zones with commands in string format.
 
     Arguments:
       + machine: a machine dict as returned by ``defines.get_machine``.
@@ -196,42 +196,8 @@ def expand_group_zones_cmd_set(machine, zones_cmd_set, cascade=False):
       + cascade: when True, commands for zones get overriden by latter ones
          instead of being appended in the same loop.
 
-    Returns the expanded zones_cmd_set.
+    Returns a list ready to be sent to the USB device.
     """
-    expanded = []
-    for zone_idx, zone_cmd_set in enumerate(zones_cmd_set):
-        uid = zone_cmd_set[0]
-        cmd_and_args = zone_cmd_set[1]
-        zone = machine['zones_by_uid'][uid]
-        if not zone['is_group']:
-            expanded.append(zone_cmd_set)
-        else:
-            for single_uid in uid:
-                # When cascade we need the group index because a lower index
-                # means less priority when overriding commands.
-                if cascade and group_zone_has_cmd(
-                        uid, single_uid, zone_idx, zones_cmd_set):
-                    continue
-                expanded.append((single_uid, cmd_and_args))
-    return expanded
-
-
-def prepare_zones_cmd_set(machine, zones_cmd_set, cascade=False):
-    """
-    Alias for merge_zones_cmd_set(expand_group_zones_cmd_set(*args))
-    """
-    return merge_zones_cmd_set(
-        machine, expand_group_zones_cmd_set(
-            machine, zones_cmd_set, cascade))
-
-
-def parse_prepare_zones_cmd_set(machine, zones_cmd_set, cascade=False):
-    """
-    Alias for:
-        parse_zones_cmd_set(
-            merge_zones_cmd_set(expand_group_zones_cmd_set(*args)))
-    """
-    return merge_zones_cmd_set(
-        machine, expand_group_zones_cmd_set(
-            machine, parse_zones_cmd_set(
-                machine, zones_cmd_set), cascade))
+    parsed = parse_zones(machine, zones_cmd_set)
+    flat = flatten_group_zones(machine, parsed)
+    return merge_zones(machine, flat, cascade)

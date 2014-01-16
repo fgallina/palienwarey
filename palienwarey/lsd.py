@@ -8,7 +8,7 @@ from .constants import (
 from .defines import get_machine
 from .logconf import logger, set_log_level, set_log_formatter, log_error_code
 from .lsdaemon import DEFAULT_HOST, DEFAULT_PORT, SUCCESS
-from .parse import AppendZoneAction, parse_prepare_zones_cmd_set
+from .parse import AppendZoneAction, parse
 from .protocol import send
 
 
@@ -23,7 +23,7 @@ def lsd(machine, zones=None, modes=None, speed=0, save=False,
     set_log_formatter(verbosity)
 
     try:
-        zones = parse_prepare_zones_cmd_set(machine, zones, cascade)
+        parsed = parse(machine, zones, cascade)
     except KeyError as e:
         logger.error(e.message)
         return log_error_code(ERROR_UNKNOWN_COMMAND)
@@ -40,13 +40,13 @@ def lsd(machine, zones=None, modes=None, speed=0, save=False,
 
     if not daemon:
         logger.info('Not using daemon, executing commands directly.')
-        return send(machine, zones, modes, speed, save)
+        return send(machine, parsed, modes, speed, save)
     else:
         response = lsdclient.ping(host, port)
         if response['success']:
             logger.info('Using daemon at port: %s' % port)
             response = lsdclient.send(host, port, {
-                'zones': zones,
+                'zones': parsed,
                 'modes': modes,
                 'speed': speed,
                 'save': save
